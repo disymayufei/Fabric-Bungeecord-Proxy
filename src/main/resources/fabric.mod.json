@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "fabric_proxy",
+  "version": "${version}",
+
+  "name": "Fabric Proxy",
+  "description": "Support forward player data from proxy",
+  "authors": [
+    "Disy920"
+  ],
+  "contact": {
+    "homepage": "https://www.starlight.cool"
+  },
+
+  "license": "MIT",
+  "icon": "assets/modid/icon.png",
+
+  "environment": "server",
+  "entrypoints": {
+    "main": []
+  },
+  "mixins": [
+    "common.mixins.json",
+    "bungee.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.9",
+    "fabric-api": "*",
+    "minecraft": "~1.19",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

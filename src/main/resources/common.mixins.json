@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "cn.starlight.fabricproxy.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ClientConnectionAccessor",
+    "ServerConfigHandlerMixin",
+    "UserCacheMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

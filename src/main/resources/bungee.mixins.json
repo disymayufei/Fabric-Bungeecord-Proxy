@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "cn.starlight.fabricproxy.mixin.bungee",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "cn.starlight.fabricproxy.FabricProxy",
+  "mixins": [
+    "ClientConnectionMixin",
+    "HandshakeC2SPacketAccessor",
+    "HandshakeC2SPacketMixin",
+    "ServerHandshakeNetworkHandlerMixin",
+    "ServerLoginNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
