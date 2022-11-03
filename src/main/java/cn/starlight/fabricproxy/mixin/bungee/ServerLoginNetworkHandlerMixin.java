@@ -42,8 +42,10 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
             if(FabricProxy.config.getAlwaysOfficialUUID()){
                 Optional<GameProfile> optional = this.server.getUserCache().findByName(this.profile.getName());
-                optional.ifPresent(gameProfile -> {
+                optional.ifPresentOrElse(gameProfile -> {
                     this.profile = new GameProfile(gameProfile.getId(), this.profile.getName());
+                }, () -> {
+                    this.profile = new GameProfile(((BungeeClientConnection) connection).getSpoofedUUID(), this.profile.getName());
                 });
             }
             else {

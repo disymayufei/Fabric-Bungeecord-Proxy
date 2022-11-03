@@ -1,19 +1,15 @@
 package cn.starlight.fabricproxy.mixin.bungee;
 
-import cn.starlight.fabricproxy.FabricProxy;
 import cn.starlight.fabricproxy.interfaces.BungeeClientConnection;
 import cn.starlight.fabricproxy.mixin.ClientConnectionAccessor;
 import com.google.gson.Gson;
-import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.util.UUIDTypeAdapter;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.NetworkState;
 import net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket;
 import net.minecraft.network.packet.s2c.login.LoginDisconnectS2CPacket;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerHandshakeNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,8 +17,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Optional;
 
 import static cn.starlight.fabricproxy.FabricProxy.config;
 
