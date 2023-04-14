@@ -5,6 +5,8 @@ import cn.starlight.fabricproxy.interfaces.BungeeClientConnection;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.encryption.PlayerPublicKey;
+import net.minecraft.network.encryption.SignatureVerifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import org.objectweb.asm.Opcodes;
@@ -17,13 +19,14 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     private boolean bypassProxyBungee = false;
     @Shadow
     @Final
-    public ClientConnection connection;
+    ClientConnection connection;
     @Shadow
     GameProfile profile;
     @Shadow
@@ -59,6 +62,14 @@ public abstract class ServerLoginNetworkHandlerMixin {
             }
         }
     }
+
+    // 这部分代码似乎在1.19.4+已经不再需要了，mojang去掉了对公钥验证的相关逻辑，但以防万一，先留着
+    /*
+    @Redirect(method = "acceptPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;getVerifiedPublicKey(Lnet/minecraft/network/encryption/PlayerPublicKey$PublicKeyData;Ljava/util/UUID;Lnet/minecraft/network/encryption/SignatureVerifier;Z)Lnet/minecraft/network/encryption/PlayerPublicKey;"))
+    public PlayerPublicKey getVerifiedPublicKey(PlayerPublicKey.PublicKeyData publicKeyData, UUID playerUuid, SignatureVerifier servicesSignatureVerifier, boolean shouldThrowOnMissingKey){
+        return null;
+    }
+     */
 
     @Redirect(method = "onHello", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;isOnlineMode()Z"))
     private boolean skipKeyPacket(MinecraftServer minecraftServer) {
