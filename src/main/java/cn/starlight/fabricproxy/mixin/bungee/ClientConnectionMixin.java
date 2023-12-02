@@ -4,12 +4,15 @@ import cn.starlight.fabricproxy.interfaces.BungeeClientConnection;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.network.ClientConnection;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.UUID;
 
 @Mixin(ClientConnection.class)
 public abstract class ClientConnectionMixin implements BungeeClientConnection {
+    @Unique
     private UUID spoofedUUID;
+    @Unique
     private Property[] spoofedProfile;
 
     @Override

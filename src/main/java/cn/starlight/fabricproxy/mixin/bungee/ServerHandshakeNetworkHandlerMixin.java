@@ -18,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.UUID;
+
 import static cn.starlight.fabricproxy.FabricProxy.config;
 
 @Mixin(ServerHandshakeNetworkHandler.class)
@@ -30,12 +32,12 @@ public class ServerHandshakeNetworkHandlerMixin {
 
     @Inject(method = "onHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/ClientConnection;)V"))
     private void onProcessHandshakeStart(HandshakeC2SPacket packet, CallbackInfo ci) {
-        if (config.getBungeeCord() && packet.getIntendedState().equals(NetworkState.LOGIN)) {
-            String[] split = ((HandshakeC2SPacketAccessor) packet).getAddress().split("\00");
+        if (config.getBungeeCord() && NetworkState.LOGIN.equals(packet.getNewNetworkState())) {
+            String[] split = packet.address().split("\00");
             if (split.length == 3 || split.length == 4) {
                 ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getAddress()).getPort()));
 
-                ((BungeeClientConnection) connection).setSpoofedUUID(UUIDTypeAdapter.fromString(split[2]));
+                ((BungeeClientConnection) connection).setSpoofedUUID(UUID.fromString(split[2]));
 
                 if (split.length == 4) {
                     ((BungeeClientConnection) connection).setSpoofedProfile(gson.fromJson(split[3], Property[].class));

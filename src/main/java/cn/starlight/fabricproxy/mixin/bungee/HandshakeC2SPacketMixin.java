@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(HandshakeC2SPacket.class)
 public abstract class HandshakeC2SPacketMixin {
     @ModifyConstant(method = "<init>(Lnet/minecraft/network/PacketByteBuf;)V", constant = @Constant(intValue = 255))
-    private int readStringSize(int i) {
+    private static int readStringSize(int i) {
         if (FabricProxy.config.getBungeeCord()) {
             return Short.MAX_VALUE;
         }

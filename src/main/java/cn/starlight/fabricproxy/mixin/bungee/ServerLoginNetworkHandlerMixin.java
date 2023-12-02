@@ -13,6 +13,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -23,27 +24,34 @@ import java.util.UUID;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
+    @Unique
     private boolean bypassProxyBungee = false;
     @Shadow
     @Final
     ClientConnection connection;
     @Shadow
-    GameProfile profile;
+    private GameProfile profile;
     @Shadow
     @Final
     MinecraftServer server;
 
-    @Inject(method = "onHello", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;profile:Lcom/mojang/authlib/GameProfile;", shift = At.Shift.AFTER))
+    @Inject(method = "startVerify", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;profile:Lcom/mojang/authlib/GameProfile;", shift = At.Shift.AFTER))
     private void initUuid(CallbackInfo ci) {
         if (FabricProxy.config.getBungeeCord()) {
-
 
             if (((BungeeClientConnection) connection).getSpoofedUUID() == null) {
                 bypassProxyBungee = true;
                 return;
             }
 
-            if(FabricProxy.config.getAlwaysOfficialUUID()){
+            if(FabricProxy.config.getAlwaysOfficialUUID()) {
+                Optional.ofNullable(this.server.getUserCache()).ifPresent(
+                        userCache -> userCache.findByName(this.profile.getName()).ifPresentOrElse(
+                                gameProfile -> this.profile = new GameProfile(gameProfile.getId(), this.profile.getName()),
+                                () -> this.profile = new GameProfile(((BungeeClientConnection) connection).getSpoofedUUID(), this.profile.getName())
+                        )
+                );
+
                 Optional<GameProfile> optional = this.server.getUserCache().findByName(this.profile.getName());
                 optional.ifPresentOrElse(gameProfile -> {
                     this.profile = new GameProfile(gameProfile.getId(), this.profile.getName());
@@ -57,7 +65,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
             if (((BungeeClientConnection) connection).getSpoofedProfile() != null) {
                 for (Property property : ((BungeeClientConnection) connection).getSpoofedProfile()) {
-                    this.profile.getProperties().put(property.getName(), property);
+                    this.profile.getProperties().put(property.name(), property);
                 }
             }
         }

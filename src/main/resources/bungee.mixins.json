@@ -5,7 +5,6 @@
   "plugin": "cn.starlight.fabricproxy.FabricProxy",
   "mixins": [
     "ClientConnectionMixin",
-    "HandshakeC2SPacketAccessor",
     "HandshakeC2SPacketMixin",
     "NetworkHandlerMixin",
     "ServerHandshakeNetworkHandlerMixin",
