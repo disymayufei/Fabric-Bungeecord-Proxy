@@ -6,7 +6,6 @@
   "mixins": [
     "ClientConnectionMixin",
     "HandshakeC2SPacketMixin",
-    "NetworkHandlerMixin",
     "ServerHandshakeNetworkHandlerMixin",
     "ServerLoginNetworkHandlerMixin"
   ],
