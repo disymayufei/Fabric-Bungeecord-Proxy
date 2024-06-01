@@ -30,9 +30,9 @@ public class ServerHandshakeNetworkHandlerMixin {
     @Final
     private ClientConnection connection;
 
-    @Inject(method = "onHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/ClientConnection;)V"))
-    private void onProcessHandshakeStart(HandshakeC2SPacket packet, CallbackInfo ci) {
-        if (config.getBungeeCord() && NetworkState.LOGIN.equals(packet.getNewNetworkState())) {
+    @Inject(method = "login", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/ClientConnection;Z)V"))
+    private void onProcessHandshakeStart(HandshakeC2SPacket packet, boolean transfer, CallbackInfo ci) {
+        if (config.getBungeeCord() /* && NetworkState.LOGIN.equals(packet.getNewNetworkState()) */) {
             String[] split = packet.address().split("\00");
             if (split.length == 3 || split.length == 4) {
                 ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getAddress()).getPort()));

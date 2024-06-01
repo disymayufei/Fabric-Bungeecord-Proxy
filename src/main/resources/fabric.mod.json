@@ -6,7 +6,8 @@
   "name": "Fabric Proxy",
   "description": "Support forward player data from proxy",
   "authors": [
-    "Disy920"
+    "Disy920",
+    "zly2006"
   ],
   "contact": {
     "homepage": "https://www.starlight.cool"
