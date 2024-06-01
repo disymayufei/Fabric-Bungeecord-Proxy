@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class UserCacheMixin {
     @Shadow private static boolean useRemote;
 
-    @Redirect(method = "findProfileByName", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/UserCache;shouldUseRemote()Z"))
+    @Redirect(method = "getOfflinePlayerProfile", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/UserCache;shouldUseRemote()Z"))
     private static boolean findProfileByName() {
         if (FabricProxy.config.getBungeeCord()) {
             return true;
