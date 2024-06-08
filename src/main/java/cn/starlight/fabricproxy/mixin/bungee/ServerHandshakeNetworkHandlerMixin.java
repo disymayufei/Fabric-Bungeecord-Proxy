@@ -37,7 +37,19 @@ public class ServerHandshakeNetworkHandlerMixin {
             if (split.length == 3 || split.length == 4) {
                 ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getAddress()).getPort()));
 
-                ((BungeeClientConnection) connection).setSpoofedUUID(UUID.fromString(split[2]));
+                if (split[2].contains("-")) {
+                    // regular uuid format
+                    ((BungeeClientConnection) connection).setSpoofedUUID(UUID.fromString(split[2]));
+                } else {
+                    // add '-' to the uuid
+                    ((BungeeClientConnection) connection).setSpoofedUUID(UUID.fromString(
+                            split[2].substring(0, 8) + "-" +
+                                    split[2].substring(8, 12) + "-" +
+                                    split[2].substring(12, 16) + "-" +
+                                    split[2].substring(16, 20) + "-" +
+                                    split[2].substring(20) // 8-4-4-4-12
+                    ));
+                }
 
                 if (split.length == 4) {
                     ((BungeeClientConnection) connection).setSpoofedProfile(gson.fromJson(split[3], Property[].class));
