@@ -2,7 +2,7 @@ package cn.starlight.fabricproxy;
 
 @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeFinal"})
 public class ModConfig {
-    private Boolean BungeeCord = false;
+    private Boolean BungeeCord = true;
     private Boolean alwaysOfficialUUID = false;
     private Boolean allowBypassProxy = false;
 

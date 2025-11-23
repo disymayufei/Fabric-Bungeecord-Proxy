@@ -2,11 +2,13 @@ package cn.starlight.fabricproxy.mixin.bungee;
 
 import cn.starlight.fabricproxy.FabricProxy;
 import cn.starlight.fabricproxy.interfaces.BungeeClientConnection;
+import cn.starlight.fabricproxy.mixin.GameProfileAccessor;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.encryption.PlayerPublicKey;
-import net.minecraft.network.encryption.SignatureVerifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import org.objectweb.asm.Opcodes;
@@ -19,65 +21,68 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Optional;
+import java.util.Collection;
 import java.util.UUID;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
+
     @Unique
     private boolean bypassProxyBungee = false;
-    @Shadow
-    @Final
+
+    @Shadow @Final
     ClientConnection connection;
+
+    @Shadow @Final
+    MinecraftServer server;
+
     @Shadow
     private GameProfile profile;
-    @Shadow
-    @Final
-    MinecraftServer server;
 
     @Inject(method = "startVerify", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;profile:Lcom/mojang/authlib/GameProfile;", shift = At.Shift.AFTER))
     private void initUuid(CallbackInfo ci) {
-        if (FabricProxy.config.getBungeeCord()) {
+        try {
+            if (!FabricProxy.config.getBungeeCord()) return;
 
-            if (((BungeeClientConnection) connection).getSpoofedUUID() == null) {
-                bypassProxyBungee = true;
+            if (!(connection instanceof BungeeClientConnection)) {
                 return;
             }
 
-            if(FabricProxy.config.getAlwaysOfficialUUID()) {
-                Optional.ofNullable(this.server.getUserCache()).ifPresent(
-                        userCache -> userCache.findByName(this.profile.getName()).ifPresentOrElse(
-                                gameProfile -> this.profile = new GameProfile(gameProfile.getId(), this.profile.getName()),
-                                () -> this.profile = new GameProfile(((BungeeClientConnection) connection).getSpoofedUUID(), this.profile.getName())
-                        )
-                );
+            BungeeClientConnection bcc = (BungeeClientConnection) connection;
+            UUID spoofedUUID = bcc.getSpoofedUUID();
+            Collection<Property> spoofedProperties = bcc.getSpoofedProperties();
 
-                Optional<GameProfile> optional = this.server.getUserCache().findByName(this.profile.getName());
-                optional.ifPresentOrElse(gameProfile -> {
-                    this.profile = new GameProfile(gameProfile.getId(), this.profile.getName());
-                }, () -> {
-                    this.profile = new GameProfile(((BungeeClientConnection) connection).getSpoofedUUID(), this.profile.getName());
-                });
-            }
-            else {
-                this.profile = new GameProfile(((BungeeClientConnection) connection).getSpoofedUUID(), this.profile.getName());
+            if (spoofedUUID == null) {
+                return;
             }
 
-            if (((BungeeClientConnection) connection).getSpoofedProfile() != null) {
-                for (Property property : ((BungeeClientConnection) connection).getSpoofedProfile()) {
-                    this.profile.getProperties().put(property.name(), property);
+            // Maak het nieuwe profiel
+            GameProfile newProfile = new GameProfile(spoofedUUID, this.profile.name());
+
+            // Verwerk skins/properties
+            if (spoofedProperties != null && !spoofedProperties.isEmpty()) {
+
+                // Maak de mutable map
+                Multimap<String, Property> internalMap = LinkedHashMultimap.create();
+                for (Property prop : spoofedProperties) {
+                    internalMap.put(prop.name(), prop);
                 }
+
+                // Maak de PropertyMap
+                PropertyMap newPropertyMap = new PropertyMap(internalMap);
+
+                // Injecteer via de Accessor (met dubbele cast voor de compiler)
+                ((GameProfileAccessor) (Object) newProfile).setProperties(newPropertyMap);
             }
+
+            // Wijs het nieuwe profiel toe aan het veld
+            this.profile = newProfile;
+
+        } catch (Throwable t) {
+            // Alleen errors loggen als het echt misgaat
+            t.printStackTrace();
         }
     }
-
-    // 这部分代码似乎在1.19.4+已经不再需要了，mojang去掉了对公钥验证的相关逻辑，但以防万一，先留着
-    /*
-    @Redirect(method = "acceptPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;getVerifiedPublicKey(Lnet/minecraft/network/encryption/PlayerPublicKey$PublicKeyData;Ljava/util/UUID;Lnet/minecraft/network/encryption/SignatureVerifier;Z)Lnet/minecraft/network/encryption/PlayerPublicKey;"))
-    public PlayerPublicKey getVerifiedPublicKey(PlayerPublicKey.PublicKeyData publicKeyData, UUID playerUuid, SignatureVerifier servicesSignatureVerifier, boolean shouldThrowOnMissingKey){
-        return null;
-    }
-     */
 
     @Redirect(method = "onHello", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;isOnlineMode()Z"))
     private boolean skipKeyPacket(MinecraftServer minecraftServer) {
